@@ -19,7 +19,7 @@ open class CSVRowDecoder {
         /// Decode the `Bool` as a custom value decoded by the given closure.
         case custom((_ value: String) throws -> Bool)
     }
-
+    
     /// The strategy to use for decoding `Date` values.
     public enum DateDecodingStrategy {
         /// Defer to `Date` for decoding. This is the default strategy.
@@ -60,6 +60,15 @@ open class CSVRowDecoder {
         case empty
         case custom((_ value: String) -> Bool)
     }
+    
+    /// The preprocessing strategy for `FloatingPoint` values.
+    public enum FloatingPointPreprocessingStrategy {
+        /// Don't preprocess the input string.
+        case none
+
+        /// Preprocess `FloatingPoint` key types by the given closure.
+        case custom((_ value: String) -> String)
+    }
 
     /// The strategy to use in decoding bools. Defaults to `.default`.
     open var boolDecodingStrategy: BoolDecodingStrategy = .default
@@ -73,6 +82,9 @@ open class CSVRowDecoder {
     /// The strategy to use in decoding nil data. Defaults to `.empty`.
     open var nilDecodingStrategy: NilDecodingStrategy = .empty
 
+    /// The strategy to use preprocessing floatingpoint data. Defaults to `.none`.
+    open var floatingPointPreprocessingStrategy: FloatingPointPreprocessingStrategy = .none
+    
     /// Contextual user-provided information for use during decoding.
     open var userInfo: [CodingUserInfoKey: Any] = [:]
 
@@ -82,6 +94,7 @@ open class CSVRowDecoder {
         let dateDecodingStrategy: DateDecodingStrategy
         let dataDecodingStrategy: DataDecodingStrategy
         let nilDecodingStrategy: NilDecodingStrategy
+        let floatingPointPreprocessingStrategy: FloatingPointPreprocessingStrategy
         let userInfo: [CodingUserInfoKey: Any]
     }
 
@@ -91,6 +104,7 @@ open class CSVRowDecoder {
                         dateDecodingStrategy: dateDecodingStrategy,
                         dataDecodingStrategy: dataDecodingStrategy,
                         nilDecodingStrategy: nilDecodingStrategy,
+                        floatingPointPreprocessingStrategy: floatingPointPreprocessingStrategy,
                         userInfo: userInfo)
     }
 
@@ -631,6 +645,11 @@ extension _CSVRowDecoder {
     fileprivate func unbox(_ value: String, as type: Float.Type) throws -> Float? {
         if value.isEmpty { return nil }
 
+        var value = value
+        if case let .custom(closure) = self.options.floatingPointPreprocessingStrategy {
+            value = closure(value)
+        }
+        
         guard let float = Float(value) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
         }
@@ -640,6 +659,11 @@ extension _CSVRowDecoder {
     fileprivate func unbox(_ value: String, as type: Double.Type) throws -> Double? {
         if value.isEmpty { return nil }
 
+        var value = value
+        if case let .custom(closure) = self.options.floatingPointPreprocessingStrategy {
+            value = closure(value)
+        }
+        
         guard let double = Double(value) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
         }
