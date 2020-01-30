@@ -73,6 +73,9 @@ open class CSVRowDecoder {
     /// The strategy to use in decoding nil data. Defaults to `.empty`.
     open var nilDecodingStrategy: NilDecodingStrategy = .empty
 
+    public typealias DefaultValueForTypeClosure = (Any.Type)->(Any?)
+    open var defaultValueForType: DefaultValueForTypeClosure?
+    
     /// Contextual user-provided information for use during decoding.
     open var userInfo: [CodingUserInfoKey: Any] = [:]
 
@@ -82,6 +85,7 @@ open class CSVRowDecoder {
         let dateDecodingStrategy: DateDecodingStrategy
         let dataDecodingStrategy: DataDecodingStrategy
         let nilDecodingStrategy: NilDecodingStrategy
+        let defaultValueForType: DefaultValueForTypeClosure?
         let userInfo: [CodingUserInfoKey: Any]
     }
 
@@ -91,6 +95,7 @@ open class CSVRowDecoder {
                         dateDecodingStrategy: dateDecodingStrategy,
                         dataDecodingStrategy: dataDecodingStrategy,
                         nilDecodingStrategy: nilDecodingStrategy,
+                        defaultValueForType: defaultValueForType,
                         userInfo: userInfo)
     }
 
@@ -524,7 +529,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: Bool.Type) throws -> Bool? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         switch self.options.boolDecodingStrategy {
         case .default:
@@ -539,7 +544,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: Int.Type) throws -> Int? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         guard let int = Int(value, radix: 10) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
@@ -548,7 +553,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: Int8.Type) throws -> Int8? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         guard let int8 = Int8(value, radix: 10) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
@@ -557,7 +562,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: Int16.Type) throws -> Int16? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         guard let int16 = Int16(value, radix: 10) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
@@ -566,7 +571,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: Int32.Type) throws -> Int32? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         guard let int32 = Int32(value, radix: 10) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
@@ -575,7 +580,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: Int64.Type) throws -> Int64? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         guard let int64 = Int64(value, radix: 10) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
@@ -584,7 +589,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: UInt.Type) throws -> UInt? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         guard let uint = UInt(value, radix: 10) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
@@ -593,7 +598,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: UInt8.Type) throws -> UInt8? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         guard let uint8 = UInt8(value, radix: 10) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
@@ -602,7 +607,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: UInt16.Type) throws -> UInt16? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         guard let uint16 = UInt16(value, radix: 10) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
@@ -611,7 +616,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: UInt32.Type) throws -> UInt32? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         guard let uint32 = UInt32(value, radix: 10) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
@@ -620,7 +625,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: UInt64.Type) throws -> UInt64? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         guard let uint64 = UInt64(value, radix: 10) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
@@ -629,7 +634,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: Float.Type) throws -> Float? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         guard let float = Float(value) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
@@ -638,7 +643,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: Double.Type) throws -> Double? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         guard let double = Double(value) else {
             throw self._typeMismatch(at: self.codingPath, expectation: type, reality: value)
@@ -647,13 +652,13 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox(_ value: String, as type: String.Type) throws -> String? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         return value
     }
 
     private func unbox(_ value: String, as type: Date.Type) throws -> Date? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         switch self.options.dateDecodingStrategy {
         case .deferredToDate:
@@ -689,7 +694,7 @@ extension _CSVRowDecoder {
     }
 
     private func unbox(_ value: String, as type: Data.Type) throws -> Data? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         switch self.options.dataDecodingStrategy {
         // TODO: Implement unkeyed decoding container.
@@ -708,7 +713,7 @@ extension _CSVRowDecoder {
     }
 
     fileprivate func unbox<T: Decodable>(_ value: String, as type: T.Type) throws -> T? {
-        if value.isEmpty { return nil }
+        if value.isEmpty { return defaultValueIfAvailable(for: type) }
 
         if type == Date.self {
             guard let date = try self.unbox(value, as: Date.self) else { return nil }
@@ -733,6 +738,12 @@ extension _CSVRowDecoder {
         }
     }
 
+    func defaultValueIfAvailable<MyType>(for type: MyType.Type) -> MyType? {
+        if let defaultValue = self.options.defaultValueForType?(type) as? MyType {
+            return defaultValue
+        }
+        return nil
+    }
 }
 
 //===----------------------------------------------------------------------===//
